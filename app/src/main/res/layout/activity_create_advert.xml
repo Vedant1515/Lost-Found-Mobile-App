@@ -98,18 +98,31 @@
                 android:cursorVisible="false" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Location: tap to open Places Autocomplete -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Location"
+            android:hint="Location (tap to search)"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="8dp">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etLocation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text" />
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:clickable="true"
+                android:cursorVisible="false" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Get GPS location and reverse-geocode to address -->
+        <Button
+            android:id="@+id/btnGetCurrentLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="GET CURRENT LOCATION"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_marginBottom="16dp" />
 
         <TextView
             android:layout_width="wrap_content"

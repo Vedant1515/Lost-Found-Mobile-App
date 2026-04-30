@@ -22,7 +22,7 @@
         android:text="Find lost items or help others"
         android:textSize="14sp"
         android:textColor="#666666"
-        android:layout_marginBottom="56dp" />
+        android:layout_marginBottom="48dp" />
 
     <Button
         android:id="@+id/btnCreateAdvert"
@@ -39,6 +39,15 @@
         android:layout_height="56dp"
         android:text="SHOW ALL LOST &amp; FOUND ITEMS"
         android:textSize="15sp"
-        android:backgroundTint="@color/accent" />
+        android:backgroundTint="@color/accent"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/btnShowOnMap"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="SHOW ON MAP"
+        android:textSize="15sp"
+        android:backgroundTint="#43A047" />
 
 </LinearLayout>

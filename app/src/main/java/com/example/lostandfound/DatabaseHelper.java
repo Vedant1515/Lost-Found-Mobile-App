@@ -14,20 +14,22 @@ import java.util.Locale;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
-    private static final String DB_NAME = "lostandfound.db";
-    private static final int DB_VERSION = 1;
-    private static final String TABLE = "lost_found_items";
+    private static final String DB_NAME    = "lostandfound.db";
+    private static final int    DB_VERSION = 2;          // bumped for lat/lng columns
+    private static final String TABLE      = "lost_found_items";
 
-    private static final String COL_ID = "id";
-    private static final String COL_POST_TYPE = "post_type";
-    private static final String COL_NAME = "name";
-    private static final String COL_PHONE = "phone";
+    private static final String COL_ID          = "id";
+    private static final String COL_POST_TYPE   = "post_type";
+    private static final String COL_NAME        = "name";
+    private static final String COL_PHONE       = "phone";
     private static final String COL_DESCRIPTION = "description";
-    private static final String COL_DATE = "date";
-    private static final String COL_LOCATION = "location";
-    private static final String COL_CATEGORY = "category";
-    private static final String COL_IMAGE_URI = "image_uri";
-    private static final String COL_CREATED_AT = "created_at";
+    private static final String COL_DATE        = "date";
+    private static final String COL_LOCATION    = "location";
+    private static final String COL_CATEGORY    = "category";
+    private static final String COL_IMAGE_URI   = "image_uri";
+    private static final String COL_CREATED_AT  = "created_at";
+    private static final String COL_LATITUDE    = "latitude";
+    private static final String COL_LONGITUDE   = "longitude";
 
     public DatabaseHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -36,37 +38,46 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE " + TABLE + " (" +
-                COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                COL_POST_TYPE + " TEXT, " +
-                COL_NAME + " TEXT, " +
-                COL_PHONE + " TEXT, " +
+                COL_ID          + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COL_POST_TYPE   + " TEXT, " +
+                COL_NAME        + " TEXT, " +
+                COL_PHONE       + " TEXT, " +
                 COL_DESCRIPTION + " TEXT, " +
-                COL_DATE + " TEXT, " +
-                COL_LOCATION + " TEXT, " +
-                COL_CATEGORY + " TEXT, " +
-                COL_IMAGE_URI + " TEXT, " +
-                COL_CREATED_AT + " TEXT)");
+                COL_DATE        + " TEXT, " +
+                COL_LOCATION    + " TEXT, " +
+                COL_CATEGORY    + " TEXT, " +
+
+                COL_IMAGE_URI   + " TEXT, " +
+                COL_CREATED_AT  + " TEXT, " +
+                COL_LATITUDE    + " REAL DEFAULT 0, " +
+                COL_LONGITUDE   + " REAL DEFAULT 0)");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE);
-        onCreate(db);
+        // Migrate v1→v2: add lat/lng columns without losing existing data
+        if (oldVersion < 2) {
+            db.execSQL("ALTER TABLE " + TABLE + " ADD COLUMN " + COL_LATITUDE  + " REAL DEFAULT 0");
+            db.execSQL("ALTER TABLE " + TABLE + " ADD COLUMN " + COL_LONGITUDE + " REAL DEFAULT 0");
+        }
     }
 
     public long insertItem(LostFoundItem item) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues v = new ContentValues();
-        v.put(COL_POST_TYPE, item.getPostType());
-        v.put(COL_NAME, item.getName());
-        v.put(COL_PHONE, item.getPhone());
+        v.put(COL_POST_TYPE,   item.getPostType());
+        v.put(COL_NAME,        item.getName());
+        v.put(COL_PHONE,       item.getPhone());
         v.put(COL_DESCRIPTION, item.getDescription());
-        v.put(COL_DATE, item.getDate());
-        v.put(COL_LOCATION, item.getLocation());
-        v.put(COL_CATEGORY, item.getCategory());
-        v.put(COL_IMAGE_URI, item.getImageUri());
-        v.put(COL_CREATED_AT, new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss",
-                Locale.getDefault()).format(new Date()));
+        v.put(COL_DATE,        item.getDate());
+        v.put(COL_LOCATION,    item.getLocation());
+        v.put(COL_CATEGORY,    item.getCategory());
+        v.put(COL_IMAGE_URI,   item.getImageUri());
+        v.put(COL_LATITUDE,    item.getLatitude());
+        v.put(COL_LONGITUDE,   item.getLongitude());
+        v.put(COL_CREATED_AT,
+                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+                        .format(new Date()));
         long id = db.insert(TABLE, null, v);
         db.close();
         return id;
@@ -75,10 +86,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public List<LostFoundItem> getAllItems() {
         List<LostFoundItem> items = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor c = db.rawQuery("SELECT * FROM " + TABLE + " ORDER BY " + COL_CREATED_AT + " DESC", null);
-        if (c.moveToFirst()) {
-            do { items.add(fromCursor(c)); } while (c.moveToNext());
-        }
+        Cursor c = db.rawQuery(
+                "SELECT * FROM " + TABLE + " ORDER BY " + COL_CREATED_AT + " DESC", null);
+        if (c.moveToFirst()) { do { items.add(fromCursor(c)); } while (c.moveToNext()); }
         c.close();
         db.close();
         return items;
@@ -100,9 +110,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor c = db.query(TABLE, null, COL_CATEGORY + "=?",
                 new String[]{category}, null, null, COL_CREATED_AT + " DESC");
-        if (c.moveToFirst()) {
-            do { items.add(fromCursor(c)); } while (c.moveToNext());
-        }
+        if (c.moveToFirst()) { do { items.add(fromCursor(c)); } while (c.moveToNext()); }
         c.close();
         db.close();
         return items;
@@ -115,9 +123,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor c = db.query(TABLE, null,
                 COL_NAME + " LIKE ? OR " + COL_DESCRIPTION + " LIKE ?",
                 new String[]{like, like}, null, null, COL_CREATED_AT + " DESC");
-        if (c.moveToFirst()) {
-            do { items.add(fromCursor(c)); } while (c.moveToNext());
-        }
+        if (c.moveToFirst()) { do { items.add(fromCursor(c)); } while (c.moveToNext()); }
+        c.close();
+        db.close();
+        return items;
+    }
+
+    // Returns only items that have a real GPS fix (both columns non-zero).
+    // Items saved without location (old data or user skipped GPS) are excluded.
+    public List<LostFoundItem> getAllItemsWithLocation() {
+        List<LostFoundItem> items = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(
+                "SELECT * FROM " + TABLE
+                        + " WHERE " + COL_LATITUDE  + " != 0"
+                        + " OR "    + COL_LONGITUDE + " != 0"
+                        + " ORDER BY " + COL_CREATED_AT + " DESC", null);
+        if (c.moveToFirst()) { do { items.add(fromCursor(c)); } while (c.moveToNext()); }
         c.close();
         db.close();
         return items;
@@ -141,7 +163,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 c.getString(c.getColumnIndexOrThrow(COL_LOCATION)),
                 c.getString(c.getColumnIndexOrThrow(COL_CATEGORY)),
                 c.getString(c.getColumnIndexOrThrow(COL_IMAGE_URI)),
-                c.getString(c.getColumnIndexOrThrow(COL_CREATED_AT))
+                c.getString(c.getColumnIndexOrThrow(COL_CREATED_AT)),
+                c.getDouble(c.getColumnIndexOrThrow(COL_LATITUDE)),
+                c.getDouble(c.getColumnIndexOrThrow(COL_LONGITUDE))
         );
     }
 }

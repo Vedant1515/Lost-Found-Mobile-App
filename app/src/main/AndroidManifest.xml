@@ -2,10 +2,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Storage (images) -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
+    <!-- Location -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- Internet required for Maps tiles and Places API -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -16,6 +24,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Lostandfound">
+
+        <!--
+            ★ GOOGLE MAPS API KEY
+            Put your key in local.properties:   MAPS_API_KEY=AIzaSy...
+            Gradle reads it and injects it here at build time.
+        -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${MAPS_API_KEY}" />
 
         <activity
             android:name=".MainActivity"
@@ -40,6 +57,11 @@
             android:name=".ItemDetailActivity"
             android:exported="false"
             android:parentActivityName=".ItemListActivity" />
+
+        <activity
+            android:name=".MapActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
 
     </application>
 

@@ -15,12 +15,15 @@ public class LostFoundItem {
     private String category;
     private String imageUri;
     private String createdAt;
+    private double latitude;
+    private double longitude;
 
     public LostFoundItem() {}
 
     public LostFoundItem(int id, String postType, String name, String phone,
                          String description, String date, String location,
-                         String category, String imageUri, String createdAt) {
+                         String category, String imageUri, String createdAt,
+                         double latitude, double longitude) {
         this.id = id;
         this.postType = postType;
         this.name = name;
@@ -31,6 +34,8 @@ public class LostFoundItem {
         this.category = category;
         this.imageUri = imageUri;
         this.createdAt = createdAt;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     public int getId() { return id; }
@@ -63,6 +68,12 @@ public class LostFoundItem {
     public String getCreatedAt() { return createdAt; }
     public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
 
+    public double getLatitude() { return latitude; }
+    public void setLatitude(double latitude) { this.latitude = latitude; }
+
+    public double getLongitude() { return longitude; }
+    public void setLongitude(double longitude) { this.longitude = longitude; }
+
     public String getTimeAgo() {
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
@@ -71,10 +82,10 @@ public class LostFoundItem {
             long diff = new Date().getTime() - past.getTime();
             long seconds = diff / 1000;
             long minutes = seconds / 60;
-            long hours = minutes / 60;
-            long days = hours / 24;
-            if (days > 0) return days + (days == 1 ? " day ago" : " days ago");
-            if (hours > 0) return hours + (hours == 1 ? " hour ago" : " hours ago");
+            long hours   = minutes / 60;
+            long days    = hours   / 24;
+            if (days    > 0) return days    + (days    == 1 ? " day ago"    : " days ago");
+            if (hours   > 0) return hours   + (hours   == 1 ? " hour ago"   : " hours ago");
             if (minutes > 0) return minutes + (minutes == 1 ? " minute ago" : " minutes ago");
             return "Just now";
         } catch (Exception e) {
